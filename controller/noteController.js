@@ -1,5 +1,4 @@
 
-
 const { Op } =  require('sequelize');
 const { Note } = require('../models')
 
@@ -31,29 +30,77 @@ const getNote = async (req, res) => {
 
 const getNotebyID = async (req, res) => {
     try{
-
-        const NID = req.params.id
+        const { NIDs } = req.body
+        const { UID } = req.user
     
-        const result = await Note.findByPk(NID)
+        const result = await Note.findAll({
+            where:{
+                NID : {
+                    [Op.in]: NIDs
+                },
+                UID : UID
+            }
+        })
 
-        if (result) {
+        if (result.length > 0) {
+
+            const message = result.length === 1 ? "Show note successfully!!" : "Show notes successfully!!"
             res.json({
-                message: "Note found successfully!!",
+                message: message,
                 note: result
             })
         } else {
             res.status(404).json({
-                message: "Note not found",
-            })
+                message: "No notes found for the provided IDs.",
+            });
         }
 
     }catch(error){
         res.status(500).json({
-            message: "Show note unsuccessful",
+            message: "Show notes unsuccessful",
             error: error.message
         })
     }
 }
+
+const combineNoteByIDs = async (req, res) => {
+    try {
+        const { NIDs } = req.body; // Assuming NIDs are provided in the request body
+        const { UID } = req.user;
+
+        const notes = await Note.findAll({
+            where: {
+                NID: {
+                    [Op.in]: NIDs
+                },
+                UID: UID
+            }
+        });
+
+        if (notes.length > 1) {
+            const combinedContent = notes.map(note => `date: ${note.date_create} content: ${note.content}`).join('/n ');
+            res.json({
+                message: "Show notes successfully!!",
+                combinedContent
+            });
+        } else if (notes.length === 1) {
+            res.status(400).json({
+                message: "Error: Only one note found, multiple notes are required"
+            });
+        } else {
+            res.status(404).json({
+                message: "Show notes unsuccessful, no notes found"
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Show notes unsuccessful",
+            error: error.message
+        });
+    }
+}
+
 
 const postNote = async (req, res) => {
     try{
@@ -174,13 +221,13 @@ const getDeletedNote = async (req, res) => {
         })
         
         res.json({
-            message: "Show notes successfully!!",
+            message: "Show deleted notes successfully!!",
             note: result
         })
 
     }catch(error){
         res.status(500).json({
-            message: "Show notes unsuccessful",
+            message: "Show deleted notes unsuccessful",
             error: error.message
         })
     }
@@ -214,6 +261,7 @@ const resetStatusNote = async (req, res) => {
 module.exports = {
     getNote,
     getNotebyID,
+    combineNoteByIDs,
     postNote,
     editNote,
     archiveNote,
