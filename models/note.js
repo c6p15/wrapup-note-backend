@@ -12,7 +12,7 @@ const Note = sequelize.define('Note', {
         allowNull: true,
     },
     content: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT('medium'),
         allowNull: true,
     },
     label: {
@@ -21,7 +21,7 @@ const Note = sequelize.define('Note', {
     },
     pin: {
         type: DataTypes.TINYINT(1),
-        allowNull: true,
+        defaultValue: 0,
     },
     status: {
         type: DataTypes.ENUM('default', 'archive', 'deleted', 'schedule', 'summarized'),

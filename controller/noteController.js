@@ -78,7 +78,7 @@ const combineNoteByIDs = async (req, res) => {
         });
 
         if (notes.length > 1) {
-            const combinedContent = notes.map(note => `date: ${note.date_create} content: ${note.content}`).join('/n ');
+            const combinedContent = notes.map(note => `date: ${note.date_create} label: ${note.label} content: ${note.content}`).join('/n ');
             res.json({
                 message: "Show notes successfully!!",
                 combinedContent
@@ -189,6 +189,26 @@ const archiveNote = async (req, res) => {
     }
 }
 
+const getArchivedNote = async (req, res) => {
+    try{
+        const result = await Note.findAll({
+            where: {status: 'archive'}
+        })
+        
+        res.json({
+            message: "Show archived notes successfully!!",
+            note: result
+        })
+
+    }catch(error){
+        res.status(500).json({
+            message: "Show archived notes unsuccessful",
+            error: error.message
+        })
+    }
+}
+
+
 const deleteNote = async (req, res) => {
     try{
         const NID = req.params.id
@@ -233,6 +253,57 @@ const getDeletedNote = async (req, res) => {
     }
 }
 
+const pinNote = async (req, res) => {
+    try{
+        const NID = req.params.id
+        const note = await Note.findByPk(NID)
+
+        if(!note){
+            return res.status(404).json({ message: "Note not found"})
+        }
+
+        note.pin = 1
+        await note.save()
+
+        res.json({
+            message: "Note pinned succesfully!!",
+            note: note
+        })
+
+    }catch(error){
+        res.status(500).json({
+            message: "Note pin unsuccesful",
+            error: error.message
+        })
+    }
+}
+
+const unpinNote = async (req, res) => {
+    try{
+        const NID = req.params.id
+        const note = await Note.findByPk(NID)
+
+        if(!note){
+            return res.status(404).json({ message: "Note not found"})
+        }
+
+        note.pin = 0
+        await note.save()
+
+        res.json({
+            message: "Note unpinned succesfully!!",
+            note: note
+        })
+
+    }catch(error){
+        res.status(500).json({
+            message: "Note unpin unsuccesful",
+            error: error.message
+        })
+    }
+}
+
+
 const resetStatusNote = async (req, res) => {
     try{
         const NID = req.params.id
@@ -265,7 +336,11 @@ module.exports = {
     postNote,
     editNote,
     archiveNote,
+    getArchivedNote,
     deleteNote,
     getDeletedNote,
+    pinNote,
+    unpinNote,
     resetStatusNote
+
 }

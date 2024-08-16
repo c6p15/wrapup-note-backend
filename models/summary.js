@@ -9,7 +9,7 @@ const Summary = sequelize.define('Summary', {
         primaryKey: true,
     },
     content: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT('medium'),
         allowNull: true,
     },
     date_create: {
