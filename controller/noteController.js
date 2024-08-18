@@ -3,30 +3,53 @@ const { Op } =  require('sequelize');
 const { Note } = require('../models')
 
 const getNote = async (req, res) => {
-    try{
-        const { UID } = req.user
+    try {
+        const { UID } = req.user;
+        const { filter, label } = req.query; // รับค่าจาก query parameter
+
+        // กำหนดเงื่อนไขการเรียงลำดับตามค่าของ filter
+        let orderCondition = [];
+
+        if (filter === 'title') {
+            orderCondition = [['title', 'ASC']];
+        } else if (filter === 'date create') {
+            orderCondition = [['date_create', 'DESC']];
+        } else {
+            orderCondition = [['date_update', 'DESC']]; // ค่าเริ่มต้น
+        }
+
+        // กำหนดเงื่อนไขการกรองตาม label ถ้ามีค่า
+        let labelCondition = {};
+        if (label) {
+            const validLabels = ['study', 'health', 'finance', 'diary'];
+            if (validLabels.includes(label)) {
+                labelCondition = { label: label };
+            }
+        }
 
         const result = await Note.findAll({
             where: {
                 UID: UID,
                 status: {
-                    [Op.ne]: 'deleted'
-                }
-            }
-        })
-        
+                    [Op.ne]: 'deleted' // กรอง note ที่ status ไม่ใช่ 'deleted'
+                },
+                ...labelCondition // เพิ่มเงื่อนไข label ถ้ามีค่า
+            },
+            order: orderCondition
+        });
+
         res.json({
             message: "Show notes successfully!!",
             note: result
-        })
+        });
 
-    }catch(error){
+    } catch (error) {
         res.status(500).json({
             message: "Show notes unsuccessful",
             error: error.message
-        })
+        });
     }
-}
+};
 
 const getNotebyID = async (req, res) => {
     try{
