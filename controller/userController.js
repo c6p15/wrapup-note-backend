@@ -37,8 +37,10 @@ const Register = async (req, res) => {
 
 const Login = async (req, res) => {
     try{
-        const { username, password } = req.body
+        const { username, password, rememberMe } = req.body
         
+        const rememberMeBoolean = Boolean(rememberMe)
+
         const user = await User.findOne({ where: { username }})
         if (!user){
             return res.status(400).json({ message: 'Login incomplete...(user not found)'})
@@ -49,16 +51,19 @@ const Login = async (req, res) => {
             return res.status(400).json({ message: 'Login incomplete...(wrong password)'})
         }
 
-        const token = jwt.sign({ UID: user.UID }, process.env.SECRET, { expiresIn: '1h'})
+        const tokenExpiry = rememberMeBoolean ? '30d' : '1h'
+
+        const token = jwt.sign({ UID: user.UID }, process.env.SECRET, { expiresIn: tokenExpiry })
         res.cookie('token', token, {
-            maxAge: 3600000,
+            maxAge: rememberMeBoolean ? 2592000000 : 3600000,
             secure: true,
             httpOnly: true,
             sameSite: "none",
         })
         res.json({
             message: 'Login complete!',
-            user: user.username
+            user: user.username,
+            tokenExpiry: tokenExpiry
         })
 
     }catch(error){

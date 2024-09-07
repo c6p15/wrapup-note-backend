@@ -5,9 +5,8 @@ const { Note } = require('../models')
 const getNote = async (req, res) => {
     try {
         const { UID } = req.user;
-        const { filter, label } = req.query; // รับค่าจาก query parameter
+        const { filter, label } = req.query; 
 
-        // กำหนดเงื่อนไขการเรียงลำดับตามค่าของ filter
         let orderCondition = [];
 
         if (filter === 'title') {
@@ -15,10 +14,9 @@ const getNote = async (req, res) => {
         } else if (filter === 'date create') {
             orderCondition = [['date_create', 'DESC']];
         } else {
-            orderCondition = [['date_update', 'DESC']]; // ค่าเริ่มต้น
+            orderCondition = [['date_update', 'DESC']]; 
         }
 
-        // กำหนดเงื่อนไขการกรองตาม label ถ้ามีค่า
         let labelCondition = {};
         if (label) {
             const validLabels = ['study', 'health', 'finance', 'diary'];
@@ -31,9 +29,9 @@ const getNote = async (req, res) => {
             where: {
                 UID: UID,
                 status: {
-                    [Op.ne]: 'deleted' // กรอง note ที่ status ไม่ใช่ 'deleted'
+                    [Op.ne]: 'deleted' 
                 },
-                ...labelCondition // เพิ่มเงื่อนไข label ถ้ามีค่า
+                ...labelCondition 
             },
             order: orderCondition
         });
@@ -101,7 +99,7 @@ const combineNoteByIDs = async (req, res) => {
         });
 
         if (notes.length > 1) {
-            const combinedContent = notes.map(note => `date: ${note.date_create} label: ${note.label} content: ${note.content}`).join('/n ');
+            const combinedContent = notes.map(note => `date: ${note.date_create}, content: ${note.content}`).join('/n ');
             res.json({
                 message: "Show notes successfully!!",
                 combinedContent
@@ -352,6 +350,44 @@ const resetStatusNote = async (req, res) => {
     }
 }
 
+const showDeletionCountdown = async (req, res) => {
+    const today = new Date();
+    const { UID } = req.user; // Extract UID from the user object
+
+    try {
+        // Find all notes with status 'deleted' for the logged-in user
+        const deletedNotes = await Note.findAll({
+            where: {
+                UID: UID,
+                status: 'deleted'
+            }
+        });
+
+        // Use map to return the countdown information for each note
+        const countdownData = deletedNotes.map(note => {
+            const dateUpdate = new Date(note.date_update);
+            const daysSinceUpdate = Math.floor((today - dateUpdate) / (1000 * 60 * 60 * 24)); // Difference in days
+            const daysLeft = 30 - daysSinceUpdate;  
+
+            return {
+                title: note.title,
+                daysLeft: daysLeft > 0 ? daysLeft : 0  
+            };
+        });
+
+        res.json({
+            message: "Show Deletion Countdown successfully!",
+            countdown: countdownData
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching deletion countdown",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getNote,
     getNotebyID,
@@ -364,6 +400,7 @@ module.exports = {
     getDeletedNote,
     pinNote,
     unpinNote,
-    resetStatusNote
+    resetStatusNote,
+    showDeletionCountdown
 
 }

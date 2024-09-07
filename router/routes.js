@@ -2,13 +2,14 @@
 const express = require('express')
 // controller
 const { getAlluser,Register, Login } = require('../controller/userController')
-const { getNotebyID, getNote, postNote, editNote, archiveNote, deleteNote, getDeletedNote, resetStatusNote, combineNoteByIDs, getArchivedNote, pinNote, unpinNote} = require('../controller/noteController')
+const { getNotebyID, getNote, postNote, editNote, archiveNote, deleteNote, getDeletedNote, resetStatusNote, combineNoteByIDs, getArchivedNote, pinNote, unpinNote, showDeletionCountdown} = require('../controller/noteController')
 
 
 // middleware
 const auth = require('../middleware/auth')
 const { getSummary, deleteSummary } = require('../controller/summaryController')
 const { summaryNotes } = require('../controller/geminiController')
+const { autoDeleteNotes } = require('../services/auto_delete')
 
 const router = express.Router()
 
@@ -30,6 +31,7 @@ router.get('/trash', auth, getDeletedNote)
 router.put('/note/pin/:id', auth, pinNote)
 router.put('/note/unpin/:id', auth, unpinNote)
 router.put('/note/default/:id', auth, resetStatusNote)
+router.get('/trash/deletionCountdown', auth, showDeletionCountdown)
 
 // summary's API
 router.get('/summary', auth, getSummary)

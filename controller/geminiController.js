@@ -8,12 +8,8 @@ require('dotenv').config()
 const apiKey = process.env.GEMINI_API_KEY
 const genAI = new GoogleGenerativeAI(apiKey)
 
-const prompt = process.env.AI_PROMPT
-
-const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: prompt // Define your system prompt
-});
+const study_prompt = process.env.STUDY_PROMPT
+const health_prompt = process.env.HEALTH_PROMPT
 
 const generationConfig = {
     temperature: 0,
@@ -21,11 +17,11 @@ const generationConfig = {
     topK: 64,
     maxOutputTokens: 8192,
     responseMimeType: "text/plain",
-};
+}
 
 const summaryNotes = async (req, res) => {
     try {
-        const { NIDs } = req.body 
+        const { NIDs, promptType } = req.body // Extract promptType from the request body
         const { UID } = req.user
 
         const notes = await Note.findAll({
@@ -38,7 +34,20 @@ const summaryNotes = async (req, res) => {
         })
 
         if (notes.length > 1) {
-            const combinedContent = notes.map(note => `date: ${note.date_create} label: ${note.label} content: ${note.content}`).join('/n ')
+            const combinedContent = notes.map(note => `date: (${note.date_create}), content: (${note.content})`).join('\n')
+
+            const prompt = promptType === 'study' ? study_prompt : promptType === 'health' ? health_prompt : ''
+
+            if (!prompt) {
+                return res.status(400).json({
+                    message: "Error: Invalid prompt type"
+                })
+            }
+
+            const model = genAI.getGenerativeModel({
+                model: "gemini-1.5-flash",
+                systemInstruction: prompt // Use the selected prompt
+            })
 
             const chatSession = model.startChat({
                 generationConfig,
@@ -46,7 +55,7 @@ const summaryNotes = async (req, res) => {
                     {
                         role: "user",
                         parts: [
-                            { text: `This is the combined note content: \n${combinedContent}` },
+                            { text: `${combinedContent}` },
                         ],
                     },
                 ],
@@ -55,18 +64,17 @@ const summaryNotes = async (req, res) => {
             const result = await chatSession.sendMessage("Generate AI response")
             const aiResponse = result.response.text()
 
-            const cleanResponse = aiResponse.replace(/\n/g, "").replace(/\t/g, "")
+            const cleanResponse = aiResponse.replace(/\t+/g, "").replace(/\\t+/g, "").replace(/\n+/g, " ").trim()
 
             await Summary.create({
                 content: cleanResponse,
                 date_create: new Date(),
                 UID: UID
             })
-            
+
             res.json({
                 cleanResponse,
                 message: "Summarize successfully!!",
-                
             })
         } else if (notes.length === 1) {
             res.status(400).json({
