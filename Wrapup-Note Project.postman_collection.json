@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\":\"testPostman01\",\r\n    \"email\":\"postman@example.com\",\r\n    \"password\":\"testPostman01\"\r\n}",
+							"raw": "{\r\n    \"username\":\"test1\",\r\n    \"email\":\"test1@example.com\",\r\n    \"password\":\"test1\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -45,7 +45,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\":\"test1\",\r\n    \"password\":\"test1\"\r\n}",
+							"raw": "{\r\n    \"username\":\"test01\",\r\n    \"password\":\"test01\",\r\n    \"rememberMe\": false // true, false\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -95,7 +95,28 @@
 					"name": "Get User's Note",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/note?filter=datecreate&label=finance",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"note"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "datecreate"
+								},
+								{
+									"key": "label",
+									"value": "finance"
+								}
+							]
+						}
 					},
 					"response": []
 				},
@@ -134,7 +155,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"NIDs\":[1,2,3,4]\r\n}",
+							"raw": "{\r\n    \"NIDs\":[31,32,33,34]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -162,7 +183,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\":\"test title06\",\r\n    \"content\":\"test content\",\r\n    \"label\":\"Hobby\" // ( Study, Hobby, Health, Finance, Diary )\r\n}",
+							"raw": "{\r\n    \"title\":\"health04\",\r\n    \"content\":\"วันนี้ตัดสินใจลดการทานอาหารหวาน และเพิ่มการบริโภคโปรตีนจากเนื้อสัตว์และถั่ว การเปลี่ยนแปลงนี้ช่วยให้รู้สึกว่าร่างกายแข็งแรงขึ้นและมีพลังงานมากขึ้นตลอดวัน\",\r\n    \"label\":\"Health\" // ( Study, Health, Finance, Diary )\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -379,6 +400,26 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/trash/deletionCountdown",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"trash",
+								"deletionCountdown"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -443,7 +484,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \r\n}",
+							"raw": "{\r\n    \"NIDs\":[40,41,42,43],\r\n    \"promptType\": \"health\" // study, health\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
