@@ -10,6 +10,8 @@ const genAI = new GoogleGenerativeAI(apiKey)
 
 const study_prompt = process.env.STUDY_PROMPT
 const health_prompt = process.env.HEALTH_PROMPT
+const finance_prompt = process.env.FINANCE_PROMPT
+const diary_prompt = process.env.DIARY_PROMPT
 
 const generationConfig = {
     temperature: 0,
@@ -36,7 +38,7 @@ const summaryNotes = async (req, res) => {
         if (notes.length > 1) {
             const combinedContent = notes.map(note => `date: (${note.date_create}), content: (${note.content})`).join('\n')
 
-            const prompt = promptType === 'study' ? study_prompt : promptType === 'health' ? health_prompt : ''
+            const prompt = promptType === 'study' ? study_prompt : promptType === 'health' ? health_prompt : promptType === 'finance' ? finance_prompt : promptType === 'diary' ? diary_prompt : ''
 
             if (!prompt) {
                 return res.status(400).json({
@@ -73,6 +75,7 @@ const summaryNotes = async (req, res) => {
             })
 
             res.json({
+                promptType: promptType,
                 cleanResponse,
                 message: "Summarize successfully!!",
             })
