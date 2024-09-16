@@ -5,16 +5,16 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
     host: process.env.DB_HOST,
     dialect: 'mysql',
     logging: false
-});
+})
 
 const db = async () => {
     try {
-        await sequelize.authenticate();
+        await sequelize.authenticate()
         console.log('Database connected successfully!')
     } catch (error) {
-        console.error('Error connecting to the database:', error);
+        console.error('Error connecting to the database:', error)
         throw error;
     }
-};
+}
 
 module.exports = { sequelize, db }

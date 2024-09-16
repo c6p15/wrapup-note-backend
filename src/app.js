@@ -35,3 +35,5 @@ const startServer = async () => {
 }
 
 startServer()
+
+require('../node-cron/cronjob')

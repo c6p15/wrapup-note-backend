@@ -12,6 +12,14 @@ const Summary = sequelize.define('Summary', {
         type: DataTypes.TEXT('medium'),
         allowNull: true,
     },
+    status: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+    },
+    label: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+    },
     date_create: {
         type: DataTypes.DATEONLY,
         allowNull: true,

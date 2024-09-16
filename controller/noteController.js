@@ -84,10 +84,11 @@ const getNotebyID = async (req, res) => {
     }
 }
 
+
 const combineNoteByIDs = async (req, res) => {
     try {
-        const { NIDs } = req.body; // Assuming NIDs are provided in the request body
-        const { UID } = req.user;
+        const { NIDs } = req.body
+        const { UID } = req.user
 
         const notes = await Note.findAll({
             where: {
@@ -96,31 +97,32 @@ const combineNoteByIDs = async (req, res) => {
                 },
                 UID: UID
             }
-        });
+        })
 
         if (notes.length > 1) {
-            const combinedContent = notes.map(note => `date: ${note.date_create}, content: ${note.content}`).join('/n ');
+            const combinedContent = notes.map(note => `date: (${note.date_create}), content: (${note.content})`).join('\n')
             res.json({
                 message: "Show notes successfully!!",
                 combinedContent
-            });
+            })
         } else if (notes.length === 1) {
             res.status(400).json({
                 message: "Error: Only one note found, multiple notes are required"
-            });
+            })
         } else {
             res.status(404).json({
                 message: "Show notes unsuccessful, no notes found"
-            });
+            })
         }
 
     } catch (error) {
         res.status(500).json({
             message: "Show notes unsuccessful",
             error: error.message
-        });
+        })
     }
 }
+
 
 
 const postNote = async (req, res) => {
@@ -351,29 +353,27 @@ const resetStatusNote = async (req, res) => {
 }
 
 const showDeletionCountdown = async (req, res) => {
-    const today = new Date();
-    const { UID } = req.user; // Extract UID from the user object
+    const today = new Date()
+    const { UID } = req.user 
 
     try {
-        // Find all notes with status 'deleted' for the logged-in user
         const deletedNotes = await Note.findAll({
             where: {
                 UID: UID,
                 status: 'deleted'
             }
-        });
+        })
 
-        // Use map to return the countdown information for each note
         const countdownData = deletedNotes.map(note => {
-            const dateUpdate = new Date(note.date_update);
-            const daysSinceUpdate = Math.floor((today - dateUpdate) / (1000 * 60 * 60 * 24)); // Difference in days
-            const daysLeft = 30 - daysSinceUpdate;  
+            const dateUpdate = new Date(note.date_update)
+            const daysSinceUpdate = Math.floor((today - dateUpdate) / (1000 * 60 * 60 * 24))
+            const daysLeft = 30 - daysSinceUpdate  
 
             return {
                 title: note.title,
                 daysLeft: daysLeft > 0 ? daysLeft : 0  
-            };
-        });
+            }
+        })
 
         res.json({
             message: "Show Deletion Countdown successfully!",
@@ -384,9 +384,9 @@ const showDeletionCountdown = async (req, res) => {
         res.status(500).json({
             message: "Error fetching deletion countdown",
             error: error.message
-        });
+        })
     }
-};
+}
 
 module.exports = {
     getNote,

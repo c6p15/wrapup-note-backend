@@ -31,11 +31,11 @@ const deleteSummary = async (req, res) => {
         if (result === 1) {
             res.json({
                 message: "Summary deleted successfully!!",
-            });
+            })
         } else {
             res.json({
                 message: "Summary not found",
-            });
+            })
         }
     }catch(error){
         res.status(500).json({

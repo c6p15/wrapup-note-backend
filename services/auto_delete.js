@@ -1,10 +1,10 @@
-const { Op } = require('sequelize');
-const { Note } = require('../models');
+const { Op } = require('sequelize')
+const { Note } = require('../models')
 
 const autoDeleteNotes = async () => {
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const today = new Date()
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(today.getDate() - 30)
 
     try {
         // Find and log notes to be deleted
@@ -15,9 +15,9 @@ const autoDeleteNotes = async () => {
                     [Op.lt]: thirtyDaysAgo  
                 }
             }
-        });
+        })
 
-        console.log('Notes to delete:', notesToDelete.map(note => note.title));
+        console.log('Notes to delete:', notesToDelete.map(note => note.title))
 
         const result = await Note.destroy({
             where: {
@@ -28,10 +28,10 @@ const autoDeleteNotes = async () => {
             }
         });
 
-        console.log(`${result} deleted notes were removed.`);
+        console.log(`${result} deleted notes were removed.`)
     } catch (error) {
-        console.error('Error deleting old notes:', error);
+        console.error('Error deleting old notes:', error)
     }
 };
 
-module.exports = { autoDeleteNotes };
+module.exports = { autoDeleteNotes }

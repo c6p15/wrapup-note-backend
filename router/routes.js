@@ -2,7 +2,7 @@
 const express = require('express')
 // controller
 const { getAlluser,Register, Login } = require('../controller/userController')
-const { getNotebyID, getNote, postNote, editNote, archiveNote, deleteNote, getDeletedNote, resetStatusNote, combineNoteByIDs, getArchivedNote, pinNote, unpinNote, showDeletionCountdown} = require('../controller/noteController')
+const { getNotebyID, getNote, combineNoteByIDs, postNote, editNote, archiveNote, deleteNote, getDeletedNote, resetStatusNote, getArchivedNote, pinNote, unpinNote, showDeletionCountdown} = require('../controller/noteController')
 
 
 // middleware
@@ -21,7 +21,7 @@ router.get('/users', auth, getAlluser)
 // note's API
 router.get('/note', auth, getNote)
 router.post('/notes', auth, getNotebyID)
-router.post('/selected-notes', auth, combineNoteByIDs)
+router.post('/combine-notes', auth, combineNoteByIDs)
 router.post('/note', auth, postNote)
 router.put('/note/:id', auth, editNote)
 router.put('/note/archive/:id', auth, archiveNote)

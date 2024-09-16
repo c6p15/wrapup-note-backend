@@ -37,8 +37,14 @@ const summaryNotes = async (req, res) => {
 
         if (notes.length > 1) {
             const combinedContent = notes.map(note => `date: (${note.date_create}), content: (${note.content})`).join('\n')
+            
+            const lowerCasePromptType = promptType.toLowerCase()
 
-            const prompt = promptType === 'study' ? study_prompt : promptType === 'health' ? health_prompt : promptType === 'finance' ? finance_prompt : promptType === 'diary' ? diary_prompt : ''
+            const prompt = 
+                            lowerCasePromptType === 'study' ? study_prompt : 
+                            lowerCasePromptType === 'health' ? health_prompt : 
+                            lowerCasePromptType === 'finance' ? finance_prompt : 
+                            lowerCasePromptType === 'diary' ? diary_prompt : ''
 
             if (!prompt) {
                 return res.status(400).json({
@@ -48,7 +54,7 @@ const summaryNotes = async (req, res) => {
 
             const model = genAI.getGenerativeModel({
                 model: "gemini-1.5-flash",
-                systemInstruction: prompt // Use the selected prompt
+                systemInstruction: `${prompt}` // Use the selected prompt
             })
 
             const chatSession = model.startChat({
@@ -70,6 +76,8 @@ const summaryNotes = async (req, res) => {
 
             await Summary.create({
                 content: cleanResponse,
+                status: null,
+                label:promptType,
                 date_create: new Date(),
                 UID: UID
             })

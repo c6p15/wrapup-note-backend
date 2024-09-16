@@ -1,8 +1,8 @@
-const cron = require('node-cron');
-const autoDeleteNotes = require('../services/auto_delete');  // The function defined above
+const cron = require('node-cron')
+const autoDeleteNotes = require('../services/auto_delete')
 
-// Schedule the task to run every day at midnight
 cron.schedule('0 0 * * *', () => {
-    console.log('Running auto-delete for old notes...');
-    autoDeleteNotes();
-});
+    console.log('Running auto-delete for old notes...')
+    autoDeleteNotes()
+})
+
