@@ -151,28 +151,8 @@
 				{
 					"name": "Combine Notes",
 					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"NIDs\":[31,32,33,34]\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8000/selected-notes",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8000",
-							"path": [
-								"selected-notes"
-							]
-						}
+						"method": "GET",
+						"header": []
 					},
 					"response": []
 				},
@@ -402,7 +382,7 @@
 					"response": []
 				},
 				{
-					"name": "New Request",
+					"name": "Show deletion countdown",
 					"request": {
 						"method": "GET",
 						"header": [],
