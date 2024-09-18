@@ -51,11 +51,11 @@ const Login = async (req, res) => {
             return res.status(400).json({ message: 'Login incomplete...(wrong password)'})
         }
 
-        const tokenExpiry = rememberMeBoolean ? '30d' : '1h'
+        const tokenExpiry = rememberMeBoolean ? '30d' : '1d'
 
         const token = jwt.sign({ UID: user.UID }, process.env.SECRET, { expiresIn: tokenExpiry })
         res.cookie('token', token, {
-            maxAge: rememberMeBoolean ? 2592000000 : 3600000,
+            maxAge: rememberMeBoolean ? 2592000000 : 86400000 ,
             secure: true,
             httpOnly: true,
             sameSite: "none",
