@@ -13,8 +13,8 @@ const Summary = sequelize.define('Summary', {
         allowNull: true,
     },
     status: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
+        type: DataTypes.ENUM('default', 'deleted'),
+        defaultValue: 'default',
     },
     label: {
         type: DataTypes.STRING(255),
@@ -35,6 +35,6 @@ const Summary = sequelize.define('Summary', {
 }, {
     tableName: 'summary',
     timestamps: false,
-});
+})
 
 module.exports = Summary

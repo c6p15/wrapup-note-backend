@@ -74,6 +74,61 @@ const Login = async (req, res) => {
     }
 }
 
+const Logout = (req, res) => {
+    try {
+        res.cookie('token', '', { 
+            maxAge: 0,  
+            secure: true,
+            httpOnly: true,
+            sameSite: "none"
+        });
+
+        if (!req.cookies || !req.cookies.token) {
+            return res.status(400).json({ message: 'No token found. Already logged out or not logged in.' });
+        }
+        res.status(200).json({ message: 'Logout complete!' })
+
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Logout failed...', 
+            error: error.message 
+        })
+        
+    }
+}
+
+const updateUser = async (req, res) => {
+    try {
+        const { UID } = req.user 
+        const { oldPassword, newPassword } = req.body
+
+        const user = await User.findOne({ where: { UID } })
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' })
+        }
+
+        const match = await bcrypt.compare(oldPassword, user.password)
+        if (!match) {
+            return res.status(400).json({ message: 'Old password is incorrect.' })
+        }
+
+        const newPasswordHash = await bcrypt.hash(newPassword, 10)
+
+        user.password = newPasswordHash
+        await user.save()
+
+        res.json({
+            message: 'Password updated successfully!',
+            user: user.username
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: 'Password update failed...',
+            error: error.message
+        })
+    }
+}
+
 const getAlluser = async (req, res) => {
     try{
         const result = await User.findAll({
@@ -93,9 +148,23 @@ const getAlluser = async (req, res) => {
     }
 }
 
+const getToken = async (req, res) => {
+    
+    const token = req.cookies.token;
+
+    try {
+        jwt.verify(token, process.env.SECRET);
+        res.json({ hasToken: true });
+    } catch (error) {
+        res.json({ hasToken: false });
+    }
+};
+
 module.exports = {
     getAlluser,
     Register,
-    Login
-
+    Login,
+    Logout,
+    updateUser,
+    getToken
 }

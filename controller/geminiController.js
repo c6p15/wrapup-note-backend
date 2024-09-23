@@ -38,13 +38,13 @@ const summaryNotes = async (req, res) => {
         if (notes.length > 1) {
             const combinedContent = notes.map(note => `date: (${note.date_create}), content: (${note.content})`).join('\n')
             
-            const lowerCasePromptType = promptType.toLowerCase()
+            const fixedPromptType = promptType.charAt(0).toUpperCase() + promptType.slice(1).toLowerCase()
 
             const prompt = 
-                            lowerCasePromptType === 'study' ? study_prompt : 
-                            lowerCasePromptType === 'health' ? health_prompt : 
-                            lowerCasePromptType === 'finance' ? finance_prompt : 
-                            lowerCasePromptType === 'diary' ? diary_prompt : ''
+                            fixedPromptType === 'Study' ? study_prompt : 
+                            fixedPromptType === 'Health' ? health_prompt : 
+                            fixedPromptType === 'Finance' ? finance_prompt : 
+                            fixedPromptType === 'Diary' ? diary_prompt : ''
 
             if (!prompt) {
                 return res.status(400).json({
@@ -77,13 +77,13 @@ const summaryNotes = async (req, res) => {
             await Summary.create({
                 content: cleanResponse,
                 status: null,
-                label:promptType,
+                label:fixedPromptType,
                 date_create: new Date(),
                 UID: UID
             })
 
             res.json({
-                promptType: promptType,
+                promptType: fixedPromptType,
                 cleanResponse,
                 message: "Summarize successfully!!",
             })

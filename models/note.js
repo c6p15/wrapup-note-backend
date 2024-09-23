@@ -46,6 +46,6 @@ const Note = sequelize.define('Note', {
 }, {
     tableName: 'note',
     timestamps: false,
-});
+})
 
 module.exports = Note

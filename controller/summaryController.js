@@ -1,11 +1,29 @@
 
+const { Op } = require('sequelize')
 const { Summary } = require('../models')
 
 const getSummary = async (req, res) => {
     try{
         const { UID } = req.user
+        const { label } = req.query
+
+        let labelCondition = {}
+        if (label) {
+            const validLabels = ['study', 'health', 'finance', 'diary']
+            if (validLabels.includes(label)) {
+                labelCondition = { label: label }
+            }
+        }
+
         const result = await Summary.findAll({
-            where: {UID:UID}
+            where: {
+                UID: UID,
+                status: { 
+                    [Op.ne]: 'deleted', 
+                },
+                ...labelCondition
+            
+            }
         })
 
         res.json({
