@@ -74,9 +74,8 @@ const summaryNotes = async (req, res) => {
 
             const cleanResponse = aiResponse.replace(/\t+/g, "").replace(/\\t+/g, "").replace(/\n+/g, " ").trim()
 
-            await Summary.create({
+            const newSummary = await Summary.create({
                 content: cleanResponse,
-                status: null,
                 label:fixedPromptType,
                 date_create: new Date(),
                 UID: UID
@@ -85,6 +84,7 @@ const summaryNotes = async (req, res) => {
             res.json({
                 promptType: fixedPromptType,
                 cleanResponse,
+                SID: newSummary.SID,
                 message: "Summarize successfully!!",
             })
         } else if (notes.length === 1) {

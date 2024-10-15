@@ -1,53 +1,64 @@
 
-const { Op } =  require('sequelize');
+const { Op } =  require('sequelize')
 const { Note } = require('../models')
+const { esClient } = require('../config/elasticsearch')
 
 const getNote = async (req, res) => {
     try {
-        const { UID } = req.user;
-        const { filter, label } = req.query; 
+        const { UID } = req.user
+        const { filter, label } = req.query
 
-        let orderCondition = [];
+        let orderCondition = []
 
         if (filter === 'title') {
-            orderCondition = [['title', 'ASC']];
+            orderCondition = [['title', 'ASC']]
         } else if (filter === 'date create') {
-            orderCondition = [['date_create', 'DESC']];
+            orderCondition = [['date_create', 'DESC']]
         } else {
-            orderCondition = [['date_update', 'DESC']]; 
+            orderCondition = [['date_update', 'DESC']]
         }
 
-        let labelCondition = {};
+        let labelCondition = {}
         if (label) {
-            const validLabels = ['study', 'health', 'finance', 'diary'];
+            const validLabels = ['study', 'health', 'finance', 'diary']
             if (validLabels.includes(label)) {
-                labelCondition = { label: label };
+                labelCondition = { label: label }
             }
         }
 
-        const result = await Note.findAll({
+        const { offset, limit, page } = req.pagination;
+
+        const result = await Note.findAndCountAll({
             where: {
                 UID: UID,
                 status: {
-                    [Op.ne]: 'deleted' 
+                    [Op.ne]: 'deleted'
                 },
-                ...labelCondition 
+                ...labelCondition
             },
-            order: orderCondition
+            order: orderCondition,
+            limit: limit, 
+            offset: offset 
         });
+
+        const totalPages = Math.ceil(result.count / limit)
 
         res.json({
             message: "Show notes successfully!!",
-            note: result
-        });
+            notes: result.rows, 
+            totalNotes: result.count, 
+            currentPage: page,
+            totalPages: totalPages
+        })
 
     } catch (error) {
         res.status(500).json({
             message: "Show notes unsuccessful",
             error: error.message
-        });
+        })
     }
-};
+}
+
 
 const getNotebyID = async (req, res) => {
     try{
@@ -213,24 +224,33 @@ const archiveNote = async (req, res) => {
 }
 
 const getArchivedNote = async (req, res) => {
-    try{
-        const result = await Note.findAll({
-            where: {status: 'archive'}
-        })
+    try {
         
-        res.json({
-            message: "Show archived notes successfully!!",
-            note: result
+        const { offset, limit, page } = req.pagination
+
+        const result = await Note.findAndCountAll({
+            where: { status: 'archive' },
+            limit: limit,
+            offset: offset
         })
 
-    }catch(error){
+        const totalPages = Math.ceil(result.count / limit)
+
+        res.json({
+            message: "Show archived notes successfully!!",
+            notes: result.rows,
+            totalNotes: result.count,
+            currentPage: page,
+            totalPages: totalPages
+        })
+
+    } catch (error) {
         res.status(500).json({
             message: "Show archived notes unsuccessful",
             error: error.message
         })
     }
 }
-
 
 const deleteNote = async (req, res) => {
     try{
@@ -258,23 +278,33 @@ const deleteNote = async (req, res) => {
 }
 
 const getDeletedNote = async (req, res) => {
-    try{
-        const result = await Note.findAll({
-            where: {status: 'deleted'}
-        })
-        
-        res.json({
-            message: "Show deleted notes successfully!!",
-            note: result
+    try {
+        const { offset, limit, page } = req.pagination
+
+        const result = await Note.findAndCountAll({
+            where: { status: 'deleted' },
+            limit: limit,  
+            offset: offset  
         })
 
-    }catch(error){
+        const totalPages = Math.ceil(result.count / limit)
+
+        res.json({
+            message: "Show deleted notes successfully!!",
+            notes: result.rows,
+            totalNotes: result.count,
+            currentPage: page,
+            totalPages: totalPages
+        })
+
+    } catch (error) {
         res.status(500).json({
             message: "Show deleted notes unsuccessful",
             error: error.message
         })
     }
 }
+
 
 const pinNote = async (req, res) => {
     try{
@@ -388,6 +418,124 @@ const showDeletionCountdown = async (req, res) => {
     }
 }
 
+const indexNoteData = async (note) => {
+    try {
+      await esClient.index({
+        index: 'notes',
+        id: note.id,  // ใช้ NID ในฐานข้อมูล
+        body: {
+          title: note.title,
+          content: note.content,
+          UID: note.UID
+        }
+      });
+      console.log('Note indexed successfully:', note.id);
+    } catch (error) {
+      console.error('Error indexing note:', error);
+    }
+  };
+  
+  // ฟังก์ชันสำหรับลบข้อมูลออกจาก Elasticsearch
+  const deleteNoteFromIndex = async (NID) => {
+    try {
+      await esClient.delete({
+        index: 'notes',
+        id: NID,
+      });
+      console.log('Note deleted from index successfully:', NID);
+    } catch (error) {
+      console.error('Error deleting note from index:', error);
+    }
+  };
+
+  // ฟังก์ชันสำหรับอัปเดตสถานะใน Elasticsearch
+const updateNoteStatusInIndex = async (NID, status) => {
+    try {
+        // First, check if the document exists
+        const exists = await esClient.exists({
+            index: 'notes',
+            id: NID
+        });
+
+        if (exists) {
+            // If it exists, update it
+            await esClient.update({
+                index: 'notes',
+                id: NID,
+                body: {
+                    doc: {
+                        status: status,
+                    }
+                }
+            });
+            console.log(`Note ${NID} status updated in Elasticsearch to ${status}`);
+        } else {
+            // If it doesn't exist, index it
+            const note = await Note.findByPk(NID);
+            if (note) {
+                await esClient.index({
+                    index: 'notes',
+                    id: NID,
+                    body: {
+                        title: note.title,
+                        content: note.content,
+                        status: status,
+                        UID: note.UID,
+                        // Add any other fields you want to index
+                    }
+                });
+                console.log(`Note ${NID} indexed in Elasticsearch with status ${status}`);
+            } else {
+                console.log(`Note ${NID} not found in database, skipping Elasticsearch indexing`);
+            }
+        }
+    } catch (error) {
+        console.error(`Error updating/indexing note ${NID} in Elasticsearch:`, error);
+    }
+};
+
+
+    const searchNote = async (req, res) => {
+        try {
+            const { query } = req.body;  // รับค่าค้นหาจาก request body
+
+            // สร้าง query ที่จะค้นหาจาก title และ content
+            const result = await esClient.search({
+                index: 'notes',  // ชื่อ index ของ Elasticsearch
+                body: {
+                    query: {
+                        multi_match: {
+                            query: query,  // คำค้นหาที่รับมาจากผู้ใช้
+                            fields: ['title', 'content'],  // ค้นหาใน field `title` และ `content`
+                            fuzziness: "AUTO"  // ใช้ fuzziness เพื่อให้ค้นหาคำที่คล้ายคลึงกันได้
+                        }
+                    }
+                }
+            });
+
+            // ตรวจสอบว่าพบผลลัพธ์หรือไม่
+            const hits = result.hits.hits;
+            if (hits.length > 0) {
+                res.json({
+                    message: "Search results found!",
+                    notes: hits.map(hit => hit._source)  // ดึงข้อมูลของ note จาก _source
+                });
+            } else {
+                res.status(404).json({
+                    message: "No notes found for the provided search query."
+                });
+            }
+
+        } catch (error) {
+            console.error('Search error:', error);
+            res.status(500).json({
+                message: "Search notes unsuccessful",
+                error: error.message,
+                stack: error.stack
+            });
+        }
+    };
+
 module.exports = {
     getNote,
     getNotebyID,
@@ -401,6 +549,7 @@ module.exports = {
     pinNote,
     unpinNote,
     resetStatusNote,
-    showDeletionCountdown
+    showDeletionCountdown,
+    searchNote
 
 }

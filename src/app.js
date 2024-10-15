@@ -7,11 +7,12 @@ const cors = require('cors')
 const router = require('../router/routes')
 const { db } = require('../config/db')
 const cookieParser = require('cookie-parser')
+const { testConnection } = require('../config/elasticsearch')
 
 const app = express()
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'http://178.128.50.43',
     credentials: true
 }))
 
@@ -24,6 +25,7 @@ const PORT = process.env.PORT || 8888
 
 const startServer = async () => {
     try {
+        await testConnection()
         await db()  // Await the db function to ensure the connection is established
         app.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`)

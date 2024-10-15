@@ -56,14 +56,14 @@ const Login = async (req, res) => {
         const token = jwt.sign({ UID: user.UID }, process.env.SECRET, { expiresIn: tokenExpiry })
         res.cookie('token', token, {
             maxAge: rememberMeBoolean ? 2592000000 : 86400000 ,
-            secure: true,
+            secure: false,
             httpOnly: true,
             sameSite: "none",
         })
         res.json({
             message: 'Login complete!',
             user: user.username,
-            tokenExpiry: tokenExpiry
+            tokenExpiry: tokenExpiry,
         })
 
     }catch(error){
@@ -78,7 +78,7 @@ const Logout = (req, res) => {
     try {
         res.cookie('token', '', { 
             maxAge: 0,  
-            secure: true,
+            secure: false,
             httpOnly: true,
             sameSite: "none"
         });

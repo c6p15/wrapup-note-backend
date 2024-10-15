@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@elastic/elasticsearch": "^8.15.0",
     "@google/generative-ai": "^0.14.1",
     "backend": "file:",
     "bcrypt": "^5.1.1",

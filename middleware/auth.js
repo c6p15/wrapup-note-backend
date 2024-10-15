@@ -1,6 +1,7 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
+
 const auth = (req, res, next) => {
   const token = req.cookies.token
 
@@ -9,6 +10,7 @@ const auth = (req, res, next) => {
   try {
     const user = jwt.verify(token, process.env.SECRET);
     req.user = user;
+    
     next();
 
   } catch (error) {
@@ -16,4 +18,4 @@ const auth = (req, res, next) => {
   }
 };
 
-module.exports = auth;
+module.exports = auth
